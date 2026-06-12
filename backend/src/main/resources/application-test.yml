@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:bili_agent_test;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:bili_agent;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE
     username: sa
     password:
     driver-class-name: org.h2.Driver
   flyway:
     enabled: false
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.redisson.spring.starter.RedissonAutoConfigurationV2
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379

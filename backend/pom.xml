@@ -15,7 +15,7 @@
     <artifactId>bili-agent-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>bili-agent-backend</name>
-    <description>Bili Agent backend skeleton</description>
+    <description>B 站视频资产 AI 分析 Agent 后端</description>
 
     <properties>
         <java.version>21</java.version>
