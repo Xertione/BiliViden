@@ -14,3 +14,7 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
+
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:bili-agent-demo-secret-key-bili-agent-demo}

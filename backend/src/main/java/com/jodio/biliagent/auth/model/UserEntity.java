@@ -1,11 +1,13 @@
 package com.jodio.biliagent.auth.model;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 
 @TableName("user")
 public class UserEntity {
     private Long id;
     private String username;
+    @TableField("password_hash")
     private String passwordHash;
     private String nickname;
     private String status;
