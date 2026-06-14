@@ -5,9 +5,9 @@
 - 当前工作分支：`codex/bili-agent-backend-mvp`
 - 远端跟踪分支：`origin/codex/bili-agent-backend-mvp`
 - 当前基线 HEAD：`3abd004`（`feat: complete auth baseline with jwt login`）
-- 当前工作树状态：`Task 4`、`Task 5` 代码已在工作树完成，`Task 4/5/6` 的文档收口正在同步更新
-- 当前完成进度：`Task 1`、`Task 2`、`Task 3` 已完成并提交；`Task 4`、`Task 5` 已通过本地测试；`Task 6` 正在推进可装配骨架
-- 下一步：先把 `Task 4`、`Task 5`、`Task 6` 的状态写清，再继续后续任务
+- 当前工作树状态：`Task 7` 已完成一轮小收紧修补，代码与交接文档已对齐当前真实实现
+- 当前完成进度：`Task 1`、`Task 2`、`Task 3` 已完成并提交；`Task 4`、`Task 5`、`Task 6`、`Task 7` 已通过本地测试
+- 下一步：进入 `Task 8: 轻反馈、轻画像、轻推荐与频控`
 
 ## 已完成内容
 
@@ -123,6 +123,25 @@
 - 不做真实模型调用，只做可装配骨架与校验层
 - 重点是让默认启动不报错，同时给后续模型接入留好口子
 
+### Task 7: 知识卡片沉淀与带来源引用结构的问答占位接口
+
+当前工作树中的实现边界：
+
+- `POST /api/knowledge/cards`
+  - 需要认证
+  - 直接从当前 JWT 用户读取 `userId`
+  - 请求体为 `videoId`、`analysisTaskId`、`analysisResultId`
+  - 成功返回 `knowledge-card-created`
+- `POST /api/qa/ask`
+  - 需要认证
+  - 直接从当前 JWT 用户读取 `userId`
+  - 请求体仅保留 `question`
+  - 返回 `answer` 与 `sourceRefs`
+- `KnowledgeCardService` 当前只做最小参数校验：`userId`、`videoId`、`analysisTaskId`、`analysisResultId` 都必须为正数；仍然不落库
+- `QaService` 当前返回固定答案与固定 `sourceRefs` 结构，用于锁定问答接口契约与响应形状
+- 当前“可追溯”仅表示响应中保留来源引用字段，并不代表真实知识卡检索、来源回查或生成式问答链路已经上线
+- 本轮不接真实知识卡片查询、检索增强或 LangChain4j 问答生成
+
 ## 已完成验证
 
 ### Java 环境
@@ -181,9 +200,9 @@ backend\mvnw.cmd -f backend/pom.xml test
 当前结果：
 
 - `AuthControllerTests`：`3 tests, 0 failures`
-- 全量 backend 测试：`5 tests, 0 failures`
+- 全量 backend 测试：`23 tests, 0 failures`
 
-当前工作树里 `Task 4`、`Task 5` 相关测试也已通过，整体 backend 测试基线已推进到 `10 tests, 0 failures`。
+本轮按要求执行了 `backend\mvnw.cmd -f backend/pom.xml -Dtest=QaServiceTests test` 与 `backend\mvnw.cmd -f backend/pom.xml test`，两者均已通过；当前整体 backend 测试基线为 `23 tests, 0 failures`。
 
 ## 代码审查流程记录
 
@@ -228,6 +247,15 @@ backend\mvnw.cmd -f backend/pom.xml test
 2. `BiliBindingController` 已与现有 JWT principal 解析方式对齐。
 3. `Task 5` 的 `VideoAnalysisTaskEntity` 仍保持普通 Java Bean 风格，避免过早引入额外框架习惯。
 
+### Task 7 代码质量结论
+
+当前 Task 7 延续了已有的安全与接口约束：
+
+1. `KnowledgeCardController` 与 `QaController` 都复用了当前 JWT principal 解析方式，没有把 `userId` 从请求体重新暴露出来。
+2. `QaServiceTests` 使用真实登录换 token 的方式走通接口，当前覆盖了 happy path、空问题 400、无效 token 401 与知识卡非法参数 400。
+3. 为了绕开本地工作区路径下 `javac` 对主项目测试导入的异常，本轮把 `analysis` 相关单测收紧为运行时反射断言；不改变生产代码契约。
+4. 本轮保持 MVP 范围，不提前引入知识卡片实体、Mapper、真实问答检索或来源回查链路。
+
 ## 子代理使用经验与限制
 
 ### 已确认的限制
@@ -257,6 +285,7 @@ backend\mvnw.cmd -f backend/pom.xml test
 - 不要显式指定 `gpt-5.4`，会触发平台级 400。
 - `Task 4` 和 `Task 5` 的收口审查可以交给子代理做只读核对。
 - `Task 6` 的 LangChain4j 骨架不要假设存在自动装配，得自己手工建条件 Bean。
+- `Task 7` 的知识卡片/问答接口继续复用 JWT 当前用户模式，比把 `userId` 放回请求体更稳；“可追溯”文案要明确限定为来源引用字段占位。
 
 ## Git 与推送注意事项
 
@@ -287,10 +316,10 @@ backend\mvnw.cmd -f backend/pom.xml test
 
 ## 建议下一步
 
-1. 先完成当前 `Task 4/5/6` 收口版代码与文档更新
+1. 从当前基线进入 `Task 8` 前，先保持这轮 `Task 7` 收紧补丁与测试基线不被回退
 2. push 前做一轮敏感信息扫描，只扫本次拟提交文件
 3. push 到 `origin/codex/bili-agent-backend-mvp`
-4. 然后继续后续任务
+4. 然后进入 `Task 8`
 5. 如果继续用子代理：
    - 不要显式指定 `gpt-5.4`
    - 优先使用默认继承模型

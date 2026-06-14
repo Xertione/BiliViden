@@ -12,8 +12,8 @@
 
 - 当前执行分支：`codex/bili-agent-backend-mvp`
 - 当前基线 HEAD：`3abd004`
-- 当前进度：`Task 1`、`Task 2`、`Task 3` 已完成；`Task 4`、`Task 5` 已在工作树完成并通过本地测试；`Task 6` 正在推进骨架与配置收口
-- 下一步：先收口 `Task 4`、`Task 5`、`Task 6` 的最小基线，再继续后续任务
+- 当前进度：`Task 1`、`Task 2`、`Task 3` 已完成；`Task 4`、`Task 5`、`Task 6` 已完成最小实现；`Task 7` 已完成最小基线并通过本地测试
+- 下一步：继续推进 `Task 8` 的轻反馈、轻画像、轻推荐与频控
 - 交接记录：`docs/superpowers/status/2026-06-13-bilibili-ai-agent-backend-mvp-handoff.md`
 
 ---
@@ -1135,7 +1135,7 @@ git commit -m "feat: add structured analysis execution and fallback"
 - `Task 6` 统一使用 `app.ai.openai.base-url`、`app.ai.openai.api-key`、`app.ai.openai.model`
 - `Task 6` 只做 LangChain4j 可装配骨架，默认无 key 时不创建 AI Bean，也不发起真实模型调用
 
-### Task 7: 实现知识卡片沉淀与可追溯问答
+### Task 7: 实现知识卡片沉淀与带来源引用结构的问答占位接口
 
 **Files:**
 - Create: `backend/src/main/java/com/jodio/biliagent/knowledge/controller/KnowledgeCardController.java`
@@ -1278,6 +1278,14 @@ Expected: PASS，回答结构中带有 `sourceRefs`
 git add backend/src/main/java/com/jodio/biliagent/knowledge backend/src/main/java/com/jodio/biliagent/qa backend/src/test/java/com/jodio/biliagent/qa
 git commit -m "feat: add knowledge cards and traceable qa"
 ```
+
+当前工作树中的 Task 7 已实现最小可运行基线：
+
+- `POST /api/knowledge/cards` 需要认证，当前从 JWT 读取用户，不再要求请求体传 `userId`
+- `KnowledgeCardService` 当前只做最小参数校验，并返回 `knowledge-card-created`
+- `POST /api/qa/ask` 需要认证，当前从 JWT 读取用户，不再要求请求体传 `userId`
+- `QaService` 当前返回固定答案与 `sourceRefs` 结构，用于锁定带来源引用字段的问答响应形状
+- `Task 7` 暂不接真实知识卡片落库、问答检索、LangChain4j 问答生成或来源回查链路
 
 ### Task 8: 实现轻反馈、轻画像、轻推荐与频控
 

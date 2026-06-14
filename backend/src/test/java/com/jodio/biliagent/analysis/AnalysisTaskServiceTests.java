@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jodio.biliagent.analysis.domain.AnalysisStatus;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +33,12 @@ class AnalysisTaskServiceTests {
     private ResourceLoader resourceLoader;
 
     @Test
-    void shouldUsePendingAsInitialStatus() {
-        assertThat(AnalysisStatus.PENDING).isEqualTo(AnalysisStatus.valueOf("PENDING"));
+    void shouldUsePendingAsInitialStatus() throws Exception {
+        Class<?> statusClass = Class.forName("com.jodio.biliagent.analysis.domain.AnalysisStatus");
+        @SuppressWarnings("unchecked")
+        Class<? extends Enum> enumClass = (Class<? extends Enum>) statusClass;
+
+        assertThat(Enum.valueOf(enumClass, "PENDING").name()).isEqualTo("PENDING");
     }
 
     @Test
