@@ -18,3 +18,8 @@ spring:
 app:
   jwt:
     secret: ${APP_JWT_SECRET:bili-agent-demo-secret-key-bili-agent-demo}
+  ai:
+    openai:
+      base-url: ${APP_AI_OPENAI_BASE_URL:https://api.openai.com/v1}
+      api-key: ${APP_AI_OPENAI_API_KEY:}
+      model: ${APP_AI_OPENAI_MODEL:deepseek-chat}
