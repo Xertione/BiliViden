@@ -4,10 +4,10 @@
 
 - 当前工作分支：`codex/bili-agent-backend-mvp`
 - 远端跟踪分支：`origin/codex/bili-agent-backend-mvp`
-- 当前基线 HEAD：`c614191`（`feat: add knowledge cards and traceable qa`）
-- 当前工作树状态：`Task 8` 与 `Task 9` 已收口到可提交状态，主链路手工验收已完成，当前等待提交与 push
+- 当前基线 HEAD：`d73eaea`（`feat: finalize backend mvp runbook and validation`）
+- 当前工作树状态：`Task 8` 与 `Task 9` 已完成提交并 push，主链路手工验收已完成
 - 当前完成进度：`Task 1`、`Task 2`、`Task 3` 已完成并提交；`Task 4`、`Task 5`、`Task 6`、`Task 7`、`Task 8` 已通过本地测试；`Task 9` 已完成文档补充与端到端验收
-- 下一步：执行本轮限定范围提交、敏感信息复核与 push
+- 下一步：如继续推进新任务，请从 `d73eaea` 基线继续拆分后续计划
 
 ## 已完成内容
 
@@ -356,12 +356,13 @@ backend\mvnw.cmd -f backend/pom.xml test
 ## Git 与推送注意事项
 
 - 当前分支：`codex/bili-agent-backend-mvp`
-- 当前相对远端：`c614191` 已在远端，Task 8 代码当前尚未形成新提交；push 前请以 `git status --branch` 现状为准
+- 当前相对远端：`d73eaea` 已成功 push 到 `origin/codex/bili-agent-backend-mvp`
 - 当前已推送的关键提交包括：
   - `007afdb feat: add bili binding and sync workflow`
   - `ce5ea8e feat: add analysis task state machine baseline`
   - `865e20b docs: update backend mvp execution status`
   - `c614191 feat: add knowledge cards and traceable qa`
+  - `d73eaea feat: finalize backend mvp runbook and validation`
 - 工作区中存在大量未跟踪内容，提交时要严格限定文件范围，避免误带：
   - `backend/target/`
   - `notes/`
@@ -386,7 +387,6 @@ backend\mvnw.cmd -f backend/pom.xml test
 
 ## 下一步执行建议
 
-1. 只暂存本轮目标文件，明确排除 `backend/.env.local`、`backend/target/`、`notes/` 与其他杂项。
-2. 对拟提交文件再做一轮敏感信息扫描，重点确认没有 MySQL 密码、JWT 私钥或第三方 API Key。
-3. 形成本轮提交并 push 到 `origin/codex/bili-agent-backend-mvp`。
-4. push 完成后，把最终 commit hash 与远端状态补回本交接文档顶部。
+1. 后续新任务继续严格排除 `backend/.env.local`、`backend/target/`、`notes/` 与其他杂项。
+2. 若再次做本地手工验收，优先复用 `项目启动说明书.md` 与 `backend/scripts/` 中的辅助脚本。
+3. 若继续新增服务测试，再次遇到 `testCompile` 可见性异常，默认先用反射断言收口并在文档里留痕。
