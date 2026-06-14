@@ -1,0 +1,11 @@
+.env*
+!.env.example
+backend/.env*
+!backend/.env.example
+backend/target/
+notes/
+AGENTS.md
+CLAUDE.md
+SKILLS-CHEATSHEET.md
+imagegen-jobs.json
+pet_request.json

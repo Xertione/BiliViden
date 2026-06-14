@@ -4,10 +4,10 @@
 
 - 当前工作分支：`codex/bili-agent-backend-mvp`
 - 远端跟踪分支：`origin/codex/bili-agent-backend-mvp`
-- 当前基线 HEAD：`3abd004`（`feat: complete auth baseline with jwt login`）
-- 当前工作树状态：`Task 7` 已完成一轮小收紧修补，代码与交接文档已对齐当前真实实现
-- 当前完成进度：`Task 1`、`Task 2`、`Task 3` 已完成并提交；`Task 4`、`Task 5`、`Task 6`、`Task 7` 已通过本地测试
-- 下一步：进入 `Task 8: 轻反馈、轻画像、轻推荐与频控`
+- 当前基线 HEAD：`c614191`（`feat: add knowledge cards and traceable qa`）
+- 当前工作树状态：`Task 8` 与 `Task 9` 已收口到可提交状态，主链路手工验收已完成，当前等待提交与 push
+- 当前完成进度：`Task 1`、`Task 2`、`Task 3` 已完成并提交；`Task 4`、`Task 5`、`Task 6`、`Task 7`、`Task 8` 已通过本地测试；`Task 9` 已完成文档补充与端到端验收
+- 下一步：执行本轮限定范围提交、敏感信息复核与 push
 
 ## 已完成内容
 
@@ -142,6 +142,29 @@
 - 当前“可追溯”仅表示响应中保留来源引用字段，并不代表真实知识卡检索、来源回查或生成式问答链路已经上线
 - 本轮不接真实知识卡片查询、检索增强或 LangChain4j 问答生成
 
+### Task 8: 轻反馈、轻画像、轻推荐与频控
+
+当前工作树中的实现边界：
+
+- `FeedbackService.normalize(String label)`
+  - 已将中文轻反馈标签映射到 `POSITIVE`、`NEGATIVE`、`NEUTRAL`
+  - 未知值、空白值与 `null` 统一回退 `NEUTRAL`
+- `ProfileService.summarize(List<String> signals)`
+  - 当前返回固定轻画像摘要
+  - 摘要中包含已记录反馈数量
+- `RecommendationService.generateReasons()`
+  - 当前返回 3 条固定推荐理由
+  - Redis 频控本轮只保留 key 约定注释：`biliagent:recommend:rate-limit:user:{userId}:daily`
+- `RecommendationServiceTests`
+  - 当前覆盖反馈标签映射、未知值回退、推荐理由数量与非空、画像摘要非空、频控 key 约定
+  - 为规避当前仓库 `testCompile` 可见性异常，测试采用运行时反射调用服务，不改变生产代码契约
+
+子代理结论：
+
+- 负责 Task 8 的 worker 子代理返回 `DONE_WITH_CONCERNS`
+- concern 重点不是生产逻辑错误，而是测试层为了兼容当前仓库编译链路，暂时采用了反射断言
+- 当前这份实现接受为 MVP 最小基线；若后续 `testCompile` 异常消失，可再把测试收回普通直接调用写法
+
 ## 已完成验证
 
 ### Java 环境
@@ -200,9 +223,31 @@ backend\mvnw.cmd -f backend/pom.xml test
 当前结果：
 
 - `AuthControllerTests`：`3 tests, 0 failures`
-- 全量 backend 测试：`23 tests, 0 failures`
+- `RecommendationServiceTests`：`5 tests, 0 failures`
+- 全量 backend 测试：`28 tests, 0 failures`
 
-本轮按要求执行了 `backend\mvnw.cmd -f backend/pom.xml -Dtest=QaServiceTests test` 与 `backend\mvnw.cmd -f backend/pom.xml test`，两者均已通过；当前整体 backend 测试基线为 `23 tests, 0 failures`。
+本轮已验证以下命令通过：
+
+- `backend\mvnw.cmd -f backend/pom.xml -Dtest=QaServiceTests test`
+- `backend\mvnw.cmd -f backend/pom.xml -Dtest=RecommendationServiceTests test`
+- `backend\mvnw.cmd -f backend/pom.xml test`
+
+补充说明：
+
+- 全量测试期间会看到 Redisson 连接日志与 Mockito agent 警告
+- 当前这些都不构成阻断，且本轮没有把 Redisson / 真实频控逻辑继续扩面
+- `spring-boot:run` 这轮已完成到环境层验证：本机 MySQL 3306 与 Redis 6379 均可连通，生产 profile 数据源已改为 `APP_DB_URL`、`APP_DB_USERNAME`、`APP_DB_PASSWORD` 环境变量驱动，并保留 `allowPublicKeyRetrieval=true` 以兼容本机 MySQL 8
+- `Task 9` 的真实主链路验收本轮通过 `JDK 21 + java -jar backend\\target\\bili-agent-backend-0.0.1-SNAPSHOT.jar` 完成，避免了当前工具会话里 `Start-Process` 遇到 `Path/PATH` 冲突时的后台启动不稳定问题
+- 手工主链路验收结果如下：
+  - `POST /api/auth/register`：成功，返回 `registered`
+  - `POST /api/auth/login`：成功，返回 Bearer Token，实测 token 长度 `187`
+  - `POST /api/bili/bind`：成功，返回 `userId / biliUid / bindStatus=BOUND`
+  - `POST /api/bili/sync`：成功，返回 `historyCount=2`、`favoritesCount=1`、`watchLaterCount=1`、`uniqueVideoCount=3`、`sourceRecordCount=4`
+  - `POST /api/analysis/tasks`：成功，返回 `PENDING`
+  - `POST /api/knowledge/cards`：成功，返回 `knowledge-card-created`
+  - `POST /api/qa/ask`：成功，返回 `answer + sourceRefs`
+- 本轮验收使用临时账号：`task9-user-1781420107`
+- 当前已确认：测试基线继续使用 H2，不受本机 MySQL 凭据变化影响；生产链路与手工验收链路均已可复测
 
 ## 代码审查流程记录
 
@@ -256,6 +301,26 @@ backend\mvnw.cmd -f backend/pom.xml test
 3. 为了绕开本地工作区路径下 `javac` 对主项目测试导入的异常，本轮把 `analysis` 相关单测收紧为运行时反射断言；不改变生产代码契约。
 4. 本轮保持 MVP 范围，不提前引入知识卡片实体、Mapper、真实问答检索或来源回查链路。
 
+### Task 8 规范审查结论
+
+当前 Task 8 的最小实现满足原计划的收口目标：
+
+1. 已提供 `FeedbackService`、`ProfileService`、`RecommendationService` 三个最小 service 骨架。
+2. 已完成中文轻反馈到标准信号的映射，未知值回退 `NEUTRAL`。
+3. 已提供固定轻画像摘要与 3 条固定推荐理由。
+4. 未扩展成真实推荐系统、真实 Redis 频控、Redisson 执行逻辑或额外控制器，范围控制符合 MVP 预期。
+
+结论：当前 Task 8 可视为 **Spec compliant**。
+
+### Task 8 代码质量结论
+
+当前 Task 8 保持了比较稳的收口策略：
+
+1. 反馈标签映射逻辑简单明确，未知值统一回退 `NEUTRAL`，接口契约稳定。
+2. 画像摘要与推荐理由都保持固定输出，避免在没有真实画像与排序基础设施时假装智能化。
+3. `RecommendationServiceTests` 的反射写法仅用于规避当前仓库 `testCompile` 兼容问题，不改变生产代码行为。
+4. Redis 频控仍停留在 key 约定层，没有把半成品限流逻辑接进主链路。
+
 ## 子代理使用经验与限制
 
 ### 已确认的限制
@@ -286,12 +351,17 @@ backend\mvnw.cmd -f backend/pom.xml test
 - `Task 4` 和 `Task 5` 的收口审查可以交给子代理做只读核对。
 - `Task 6` 的 LangChain4j 骨架不要假设存在自动装配，得自己手工建条件 Bean。
 - `Task 7` 的知识卡片/问答接口继续复用 JWT 当前用户模式，比把 `userId` 放回请求体更稳；“可追溯”文案要明确限定为来源引用字段占位。
+- 若新增 service 测试再次触发同类 `testCompile` 可见性异常，默认先用反射断言收口，并在交接文档里明确备注原因与影响范围。
 
 ## Git 与推送注意事项
 
 - 当前分支：`codex/bili-agent-backend-mvp`
-- 当前相对远端：代码提交后已继续领先远端，push 前请以 `git status --branch` 现状为准
-- Task 3 最新修复已提交为 `3abd004`
+- 当前相对远端：`c614191` 已在远端，Task 8 代码当前尚未形成新提交；push 前请以 `git status --branch` 现状为准
+- 当前已推送的关键提交包括：
+  - `007afdb feat: add bili binding and sync workflow`
+  - `ce5ea8e feat: add analysis task state machine baseline`
+  - `865e20b docs: update backend mvp execution status`
+  - `c614191 feat: add knowledge cards and traceable qa`
 - 工作区中存在大量未跟踪内容，提交时要严格限定文件范围，避免误带：
   - `backend/target/`
   - `notes/`
@@ -314,13 +384,9 @@ backend\mvnw.cmd -f backend/pom.xml test
 
 这两项都属于开发占位，不是用户私钥，但 push 前仍建议再做一轮聚焦扫描。
 
-## 建议下一步
+## 下一步执行建议
 
-1. 从当前基线进入 `Task 8` 前，先保持这轮 `Task 7` 收紧补丁与测试基线不被回退
-2. push 前做一轮敏感信息扫描，只扫本次拟提交文件
-3. push 到 `origin/codex/bili-agent-backend-mvp`
-4. 然后进入 `Task 8`
-5. 如果继续用子代理：
-   - 不要显式指定 `gpt-5.4`
-   - 优先使用默认继承模型
-   - 若“无报错但像卡住”，可先保留，允许人工激活再观察
+1. 只暂存本轮目标文件，明确排除 `backend/.env.local`、`backend/target/`、`notes/` 与其他杂项。
+2. 对拟提交文件再做一轮敏感信息扫描，重点确认没有 MySQL 密码、JWT 私钥或第三方 API Key。
+3. 形成本轮提交并 push 到 `origin/codex/bili-agent-backend-mvp`。
+4. push 完成后，把最终 commit hash 与远端状态补回本交接文档顶部。

@@ -11,9 +11,9 @@
 ## Execution Status
 
 - 当前执行分支：`codex/bili-agent-backend-mvp`
-- 当前基线 HEAD：`3abd004`
-- 当前进度：`Task 1`、`Task 2`、`Task 3` 已完成；`Task 4`、`Task 5`、`Task 6` 已完成最小实现；`Task 7` 已完成最小基线并通过本地测试
-- 下一步：继续推进 `Task 8` 的轻反馈、轻画像、轻推荐与频控
+- 当前基线 HEAD：`c614191`
+- 当前进度：`Task 1`、`Task 2`、`Task 3` 已完成；`Task 4`、`Task 5`、`Task 6`、`Task 7` 已完成最小基线并通过本地测试；`Task 8` 已完成最小基线并通过本地测试
+- 下一步：收口 `Task 9` 提交与 push；端到端验收与文档补充已完成
 - 交接记录：`docs/superpowers/status/2026-06-13-bilibili-ai-agent-backend-mvp-handoff.md`
 
 ---
@@ -1401,6 +1401,18 @@ git add backend/src/main/java/com/jodio/biliagent/feedback backend/src/main/java
 git commit -m "feat: add lightweight profile and recommendation"
 ```
 
+当前工作树中的 Task 8 已实现最小可运行基线：
+
+- `FeedbackService.normalize(String label)` 已将中文轻反馈标签映射为 `POSITIVE`、`NEGATIVE`、`NEUTRAL`，未知值回退 `NEUTRAL`
+- `ProfileService.summarize(List<String> signals)` 当前返回固定轻画像摘要，并带出已记录反馈数量
+- `RecommendationService.generateReasons()` 当前返回 3 条固定推荐理由
+- Redis 频控本轮仅保留 key 约定注释：`biliagent:recommend:rate-limit:user:{userId}:daily`
+- `RecommendationServiceTests` 当前采用运行时反射调用服务，以规避当前仓库 `testCompile` 可见性异常；不改变生产代码契约
+- 已验证通过：
+  - `backend\mvnw.cmd -f backend/pom.xml -Dtest=RecommendationServiceTests test`
+  - `backend\mvnw.cmd -f backend/pom.xml test`
+- 当前全量 backend 测试基线：`28 tests, 0 failures`
+
 ### Task 9: 做一轮端到端验收与文档补充
 
 **Files:**
@@ -1429,9 +1441,10 @@ app:
   jwt:
     secret: ${APP_JWT_SECRET:bili-agent-demo-secret-key-bili-agent-demo}
   ai:
-    base-url: ${AI_BASE_URL:https://api.openai.com/v1}
-    api-key: ${AI_API_KEY:test-key}
-    model-name: ${AI_MODEL_NAME:gpt-4.1-mini}
+    openai:
+      base-url: ${APP_AI_OPENAI_BASE_URL:https://api.openai.com/v1}
+      api-key: ${APP_AI_OPENAI_API_KEY:}
+      model: ${APP_AI_OPENAI_MODEL:deepseek-chat}
 ```
 
 - [ ] **Step 3: 跑完整测试集**
@@ -1464,6 +1477,24 @@ Expected:
 git add backend/README.md backend/src/main/resources/application.yml
 git commit -m "docs: add backend runbook and mvp validation notes"
 ```
+
+当前执行事实补充：
+
+- `backend/README.md` 已按当前代码契约补齐本地启动、环境变量与最小链路说明
+- `backend/src/main/resources/application.yml` 已改为环境变量驱动：`APP_DB_URL`、`APP_DB_USERNAME`、`APP_DB_PASSWORD`、`APP_JWT_SECRET`、`APP_AI_OPENAI_*`
+- 本轮已执行 `backend\mvnw.cmd -f backend/pom.xml test`，结果为 `28 tests, 0 failures`
+- 本轮已完成真实主链路手工验收，验收方式为：
+  - 使用 `JDK 21`
+  - 先 `backend\mvnw.cmd -f backend/pom.xml -DskipTests package`
+  - 再以环境变量注入方式运行 `java -jar backend\target\bili-agent-backend-0.0.1-SNAPSHOT.jar`
+- 实测链路全部通过：
+  - `/api/auth/register`
+  - `/api/auth/login`
+  - `/api/bili/bind`
+  - `/api/bili/sync`
+  - `/api/analysis/tasks`
+  - `/api/knowledge/cards`
+  - `/api/qa/ask`
 
 ## Self-Review
 
