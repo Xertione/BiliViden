@@ -169,6 +169,15 @@
 1. 结果必须可追踪。
 2. 除内容本身外，还要保留模型名称、Prompt 版本、原始输出和解析结果。
 
+### 6.3.1 当前 MVP 收口说明
+
+当前工作树里的 Task 4/5/6 只落到了最小可运行骨架：
+
+1. Task 4 的 B 站绑定先采用内存态保存，不本轮落数据库。
+2. Task 5 先只保留 `PENDING` 初始态、任务接口最小返回和 Lua 去重脚本文件。
+3. Task 6 只做 LangChain4j 可装配骨架，默认没有 `app.ai.openai.api-key` 时不创建 AI Bean，也不做真实模型调用。
+4. 配置前缀统一收敛为 `app.ai.openai.base-url`、`app.ai.openai.api-key`、`app.ai.openai.model`。
+
 ### 6.4 反馈信号
 
 - `feedback_label_dict`

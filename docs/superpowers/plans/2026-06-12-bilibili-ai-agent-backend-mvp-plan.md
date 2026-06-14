@@ -12,8 +12,8 @@
 
 - 当前执行分支：`codex/bili-agent-backend-mvp`
 - 当前基线 HEAD：`3abd004`
-- 当前进度：`Task 1`、`Task 2`、`Task 3` 已完成并通过当前主线程验收
-- 下一步：从 `Task 4: 实现 B 站绑定与视频资产同步` 继续
+- 当前进度：`Task 1`、`Task 2`、`Task 3` 已完成；`Task 4`、`Task 5` 已在工作树完成并通过本地测试；`Task 6` 正在推进骨架与配置收口
+- 下一步：先收口 `Task 4`、`Task 5`、`Task 6` 的最小基线，再继续后续任务
 - 交接记录：`docs/superpowers/status/2026-06-13-bilibili-ai-agent-backend-mvp-handoff.md`
 
 ---
@@ -855,6 +855,14 @@ git add backend/src/main/java/com/jodio/biliagent/bili backend/src/main/java/com
 git commit -m "feat: add bili binding and sync workflow"
 ```
 
+当前工作树中的 Task 4 已实现更完整的 MVP 基线：
+
+- `POST /api/bili/bind` 需要认证，入参为 `biliUid` 与 `cookieSnapshot`
+- `POST /api/bili/sync` 直接从当前 JWT 用户读取 `userId`，不再要求请求体传入
+- `BiliRemoteClient` 与 `StubBiliRemoteClient` 已落地，当前同步链路基于 stub 数据运行
+- `BiliVideoSyncService` 按 `bvid` 去重视频本体，并保留多来源统计
+- 绑定状态目前保持为内存态 `ConcurrentHashMap`，不在本轮 Task 4 内落库
+
 ### Task 5: 实现异步分析任务状态机与去重提交
 
 **Files:**
@@ -1116,6 +1124,16 @@ Expected: PASS，空摘要会被校验拒绝
 git add backend/src/main/java/com/jodio/biliagent/analysis/ai backend/src/main/java/com/jodio/biliagent/analysis/service backend/src/main/java/com/jodio/biliagent/analysis/dto backend/src/test/java/com/jodio/biliagent/analysis
 git commit -m "feat: add structured analysis execution and fallback"
 ```
+
+当前工作树中的 Task 5/6 收口约定：
+
+- `VideoAnalysisTaskEntity` 已存在，采用普通 Java Bean 风格
+- `AnalysisTaskService.initialStatus()` 返回 `PENDING`
+- `POST /api/analysis/tasks` 当前最小返回 `PENDING`
+- `analysis_task_dedupe.lua` 已落盘，当前只承担最小 exists/set EX 去重语义
+- `Task 5` 暂不接真实异步执行器、任务落库或 Redisson 协调链路
+- `Task 6` 统一使用 `app.ai.openai.base-url`、`app.ai.openai.api-key`、`app.ai.openai.model`
+- `Task 6` 只做 LangChain4j 可装配骨架，默认无 key 时不创建 AI Bean，也不发起真实模型调用
 
 ### Task 7: 实现知识卡片沉淀与可追溯问答
 
