@@ -3,22 +3,36 @@ package com.jodio.biliagent.analysis.model;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.jodio.biliagent.common.model.BaseEntity;
+import java.time.LocalDateTime;
 
 @TableName("video_analysis_task")
 public class VideoAnalysisTaskEntity extends BaseEntity {
+
     @TableField("video_id")
     private Long videoId;
+
     @TableField("analysis_type")
     private String analysisType;
+
     private String status;
+
     @TableField("retry_count")
     private Integer retryCount;
+
     @TableField("error_message")
     private String errorMessage;
+
     @TableField("model_name")
     private String modelName;
+
     @TableField("prompt_version")
     private String promptVersion;
+
+    @TableField("started_at")
+    private LocalDateTime startedAt;
+
+    @TableField("finished_at")
+    private LocalDateTime finishedAt;
 
     public Long getVideoId() {
         return videoId;
@@ -74,5 +88,21 @@ public class VideoAnalysisTaskEntity extends BaseEntity {
 
     public void setPromptVersion(String promptVersion) {
         this.promptVersion = promptVersion;
+    }
+
+    public LocalDateTime getStartedAt() {
+        return startedAt;
+    }
+
+    public void setStartedAt(LocalDateTime startedAt) {
+        this.startedAt = startedAt;
+    }
+
+    public LocalDateTime getFinishedAt() {
+        return finishedAt;
+    }
+
+    public void setFinishedAt(LocalDateTime finishedAt) {
+        this.finishedAt = finishedAt;
     }
 }

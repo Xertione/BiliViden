@@ -15,3 +15,6 @@ spring:
 app:
   jwt:
     secret: bili-agent-demo-secret-key-bili-agent-demo
+  analysis:
+    scheduling:
+      enabled: false

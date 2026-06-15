@@ -1,12 +1,19 @@
 package com.jodio.biliagent.common.model;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import java.time.LocalDateTime;
 
 public class BaseEntity {
     private Long id;
     private Long userId;
+
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
+
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
+
     private Integer deleted;
 
     public Long getId() {
